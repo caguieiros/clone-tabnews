@@ -1,4 +1,7 @@
-// 1. DADOS DO SIMULADO
+import Head from 'next/head';
+import { useState } from 'react';
+
+// 1. DADOS DO SIMULADO (Mantidos exatamente iguais)
 const questoes = [
     { q: "1. O que significa a palavra 'democracia'?", o: ["Governo do povo", "Governo de uma só pessoa", "Governo das leis escritas", "Governo dos prefeitos"], a: 0, dica: "Lembre-se da origem da palavra: 'demo' significa povo e 'cracia' significa poder.", explicacao: "Segundo o livro, Democracia é uma palavra inventada há milhares de anos pelo povo grego e significa 'governo do povo'." },
     { q: "2. A partir de qual idade os jovens podem começar a votar no Brasil?", o: ["14 anos", "16 anos", "18 anos", "21 anos"], a: 1, dica: "É antes de completarem a maioridade (18 anos), mas não podem ser tão novos.", explicacao: "O livro diz que, por meio do voto, jovens a partir dos 16 anos, adultos e idosos praticam a cidadania ativamente." },
@@ -42,176 +45,135 @@ const questoes = [
     { q: "40. Os vereadores têm como função propor e alterar leis para qual âmbito?", o: ["Para o país inteiro", "Apenas para o município", "Apenas para o estado", "Para os tribunais de justiça"], a: 1, dica: "Vereadores são representantes locais, que cuidam do seu bairro e da sua cidade.", explicacao: "Os vereadores devem alterar ou sugerir leis para o município, pois compõem o Poder Legislativo no nível municipal." }
 ];
 
-// 2. INJEÇÃO DE CSS
-function injetarCSS() {
-    // Evita duplicar a tag style se o script rodar mais de uma vez
-    if (document.getElementById('quiz-styles')) return;
+// 2. COMPONENTE REACT PRINCIPAL
+export default function SimuladoGeografia() {
+    // Gerenciamento de estado (React State)
+    const [respostas, setRespostas] = useState({});
+    const [dicasAtivas, setDicasAtivas] = useState({});
+    const [explicacoesAtivas, setExplicacoesAtivas] = useState({});
+    const [resultadoFinal, setResultadoFinal] = useState(null);
 
-    const style = document.createElement('style');
-    style.id = 'quiz-styles';
-    style.innerHTML = `
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5; color: #333; margin: 0; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-top: 6px solid #E31837; }
-        h1 { text-align: center; color: #E31837; margin-bottom: 5px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
-        .subtitle { text-align: center; color: #2C3E50; margin-bottom: 35px; font-weight: 600; font-size: 1.1em; }
-        
-        .question { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #eaeaea; }
-        .question p { font-weight: bold; font-size: 1.15em; color: #2C3E50; }
-        
-        .options label { display: block; margin: 8px 0; cursor: pointer; padding: 10px; border-radius: 6px; transition: all 0.2s; border: 1px solid transparent; }
-        .options label:hover { background: #fdf2f2; border: 1px solid #fadbdc; }
-        
-        .btn-group { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
-        
-        .hint-btn { background-color: #f39c12; color: white; border: none; padding: 8px 14px; font-size: 0.9em; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .hint-btn:hover { background-color: #d68910; }
-        
-        .exp-btn { background-color: #2C3E50; color: white; border: none; padding: 8px 14px; font-size: 0.9em; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .exp-btn:hover { background-color: #1a252f; }
+    // Funções de interação
+    const toggleDica = (index) => {
+        setDicasAtivas(prev => ({ ...prev, [index]: !prev[index] }));
+    };
 
-        .hint-text { display: none; margin-top: 12px; padding: 12px; background-color: #fff9e6; border-left: 5px solid #f39c12; color: #5d4037; font-size: 0.95em; font-style: italic; border-radius: 0 4px 4px 0; }
-        .explanation-text { display: none; margin-top: 12px; padding: 12px; background-color: #fdf2f2; border-left: 5px solid #E31837; color: #c0392b; font-size: 0.95em; border-radius: 0 4px 4px 0; }
-        
-        .btn-main { display: block; width: 100%; color: white; border: none; padding: 16px; font-size: 1.2em; border-radius: 6px; cursor: pointer; margin-top: 20px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; transition: opacity 0.2s; }
-        .btn-corrigir { background: #27ae60; box-shadow: 0 4px 6px rgba(39,174,96,0.2); }
-        .btn-corrigir:hover { background: #219653; }
-        .btn-limpar { background: #E31837; margin-top: 12px; box-shadow: 0 4px 6px rgba(227,24,55,0.2); }
-        .btn-limpar:hover { background: #c0392b; }
-        
-        #result { margin-top: 30px; font-size: 1.4em; text-align: center; font-weight: bold; padding: 20px; border-radius: 8px; }
-    `;
-    document.head.appendChild(style);
-}
+    const toggleExplicacao = (index) => {
+        setExplicacoesAtivas(prev => ({ ...prev, [index]: !prev[index] }));
+    };
 
-// 3. CONSTRUÇÃO DO DOM
-function renderizarApp() {
-    // Configura o body caso o arquivo seja rodado em uma tela em branco
-    document.body.style.margin = "0";
-    document.body.style.backgroundColor = "#f5f5f5";
+    const selecionarResposta = (perguntaIndex, opcaoIndex) => {
+        if (resultadoFinal) return; // Trava as opções se já tiver corrigido
+        setRespostas(prev => ({ ...prev, [perguntaIndex]: opcaoIndex }));
+    };
 
-    let html = `
-        <div class="container">
-            <h1>Simulado de Geografia</h1>
-            <div class="subtitle">Treinamento Especial para o Henrique - 4º Ano</div>
-            <form id="quizForm">
-    `;
-
-    questoes.forEach((item, index) => {
-        html += `<div class="question"><p>${item.q}</p><div class="options">`;
+    const corrigirProva = () => {
+        let acertos = 0;
         
-        item.o.forEach((opt, optIndex) => {
-            html += `<label><input type="radio" name="q${index}" value="${optIndex}"> ${opt}</label>`;
+        // Conta os acertos e abre todas as explicações
+        const novasExplicacoes = {};
+        questoes.forEach((item, index) => {
+            if (respostas[index] === item.a) acertos++;
+            novasExplicacoes[index] = true;
         });
+
+        setExplicacoesAtivas(novasExplicacoes);
         
-        html += `</div>
-            <div class="btn-group">
-                <button type="button" class="hint-btn" onclick="window.toggleDica(${index})">💡 Ver Dica</button>
-                <button type="button" class="exp-btn" onclick="window.toggleExplicacao(${index})">📚 Ver Explicação do Livro</button>
+        const nota = (acertos / questoes.length) * 10;
+        setResultadoFinal({ acertos, nota });
+        
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    };
+
+    const limparProva = () => {
+        setRespostas({});
+        setDicasAtivas({});
+        setExplicacoesAtivas({});
+        setResultadoFinal(null);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    // Estilos dinâmicos das opções baseado no resultado
+    const getEstiloOpcao = (qIndex, optIndex) => {
+        if (!resultadoFinal) return {}; // Antes de corrigir, estilo normal
+        
+        const respostaCerta = questoes[qIndex].a;
+        const respostaEscolhida = respostas[qIndex];
+
+        if (optIndex === respostaCerta) {
+            return { background: "#d4edda", borderColor: "#c3e6cb" }; // Certa
+        }
+        
+        if (optIndex === respostaEscolhida && respostaEscolhida !== respostaCerta) {
+            return { background: "#f8d7da", borderColor: "#f5c6cb" }; // Errada
+        }
+        
+        return {};
+    };
+
+    return (
+        <div style={{ backgroundColor: '#f5f5f5', minHeight: '100vh', padding: '20px', fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif" }}>
+            <Head>
+                <title>Simulado de Geografia</title>
+            </Head>
+
+            <div style={{ maxWidth: '800px', margin: '0 auto', background: '#fff', padding: '30px', borderRadius: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', borderTop: '6px solid #E31837' }}>
+                <h1 style={{ textAlign: 'center', color: '#E31837', marginBottom: '5px', fontWeight: '800', textTransform: 'uppercase' }}>Simulado de Geografia</h1>
+                <div style={{ textAlign: 'center', color: '#2C3E50', marginBottom: '35px', fontWeight: '600', fontSize: '1.1em' }}>Treinamento Especial para o Henrique - 4º Ano</div>
+                
+                {questoes.map((item, index) => (
+                    <div key={index} style={{ marginBottom: '30px', paddingBottom: '20px', borderBottom: '1px solid #eaeaea' }}>
+                        <p style={{ fontWeight: 'bold', fontSize: '1.15em', color: '#2C3E50' }}>{item.q}</p>
+                        
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            {item.o.map((opt, optIndex) => (
+                                <label 
+                                    key={optIndex} 
+                                    style={{ display: 'block', cursor: 'pointer', padding: '10px', borderRadius: '6px', border: '1px solid transparent', transition: 'all 0.2s', ...getEstiloOpcao(index, optIndex) }}
+                                >
+                                    <input 
+                                        type="radio" 
+                                        name={`q${index}`} 
+                                        checked={respostas[index] === optIndex}
+                                        onChange={() => selecionarResposta(index, optIndex)}
+                                        disabled={!!resultadoFinal}
+                                        style={{ marginRight: '10px' }}
+                                    /> 
+                                    {opt}
+                                </label>
+                            ))}
+                        </div>
+                        
+                        <div style={{ display: 'flex', gap: '10px', marginTop: '12px', flexWrap: 'wrap' }}>
+                            <button type="button" onClick={() => toggleDica(index)} style={{ backgroundColor: '#f39c12', color: 'white', border: 'none', padding: '8px 14px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>💡 Ver Dica</button>
+                            <button type="button" onClick={() => toggleExplicacao(index)} style={{ backgroundColor: '#2C3E50', color: 'white', border: 'none', padding: '8px 14px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>📚 Ver Explicação do Livro</button>
+                        </div>
+                        
+                        {dicasAtivas[index] && (
+                            <div style={{ marginTop: '12px', padding: '12px', backgroundColor: '#fff9e6', borderLeft: '5px solid #f39c12', color: '#5d4037', fontStyle: 'italic' }}>{item.dica}</div>
+                        )}
+                        
+                        {explicacoesAtivas[index] && (
+                            <div style={{ marginTop: '12px', padding: '12px', backgroundColor: '#fdf2f2', borderLeft: '5px solid #E31837', color: '#c0392b' }}><strong>📚 Pelo Livro:</strong> {item.explicacao}</div>
+                        )}
+                    </div>
+                ))}
+
+                <button type="button" onClick={corrigirProva} style={{ display: 'block', width: '100%', backgroundColor: '#27ae60', color: 'white', border: 'none', padding: '16px', fontSize: '1.2em', borderRadius: '6px', cursor: 'pointer', marginTop: '20px', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                    Verificar Respostas e Nota
+                </button>
+                
+                <button type="button" onClick={limparProva} style={{ display: 'block', width: '100%', backgroundColor: '#E31837', color: 'white', border: 'none', padding: '16px', fontSize: '1.2em', borderRadius: '6px', cursor: 'pointer', marginTop: '12px', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                    Limpar Respostas e Refazer
+                </button>
+                
+                {resultadoFinal && (
+                    <div style={{ marginTop: '30px', fontSize: '1.4em', textAlign: 'center', fontWeight: 'bold', padding: '20px', borderRadius: '8px', backgroundColor: resultadoFinal.nota >= 7 ? '#e8f8f5' : '#fdf2f2', color: resultadoFinal.nota >= 7 ? '#27ae60' : '#E31837' }}>
+                        Henrique, você acertou {resultadoFinal.acertos} de {questoes.length} questões!<br/>
+                        Sua nota foi: <span>{resultadoFinal.nota.toFixed(1)}</span>
+                    </div>
+                )}
             </div>
-            
-            <div id="dica${index}" class="hint-text">${item.dica}</div>
-            <div id="explicacao${index}" class="explanation-text"><strong>📚 Pelo Livro:</strong> ${item.explicacao}</div>
-        </div>`;
-    });
-
-    html += `
-            </form>
-            <button type="button" class="btn-main btn-corrigir" onclick="window.corrigirProva()">Verificar Respostas e Nota</button>
-            <button type="button" class="btn-main btn-limpar" onclick="window.limparProva()">Limpar Respostas e Refazer</button>
-            <div id="result"></div>
         </div>
-    `;
-
-    // Injeta todo o conteúdo montado diretamente no body
-    document.body.innerHTML = html;
-}
-
-// 4. LÓGICA DE INTERAÇÃO (Adicionadas ao objeto window para uso global)
-window.toggleDica = function(index) {
-    const dicaDiv = document.getElementById(`dica${index}`);
-    dicaDiv.style.display = (dicaDiv.style.display === "none" || dicaDiv.style.display === "") ? "block" : "none";
-};
-
-window.toggleExplicacao = function(index) {
-    const expDiv = document.getElementById(`explicacao${index}`);
-    expDiv.style.display = (expDiv.style.display === "none" || expDiv.style.display === "") ? "block" : "none";
-};
-
-window.corrigirProva = function() {
-    let acertos = 0;
-    
-    questoes.forEach((item, index) => {
-        const radios = document.getElementsByName(`q${index}`);
-        let respondido = -1;
-        
-        for (let r of radios) {
-            if (r.checked) respondido = parseInt(r.value);
-            r.parentElement.style.background = "transparent";
-            r.parentElement.style.borderColor = "transparent";
-        }
-
-        if (respondido === item.a) {
-            acertos++;
-            if(radios[respondido]) {
-                radios[respondido].parentElement.style.background = "#d4edda";
-                radios[respondido].parentElement.style.borderColor = "#c3e6cb";
-            }
-        } else {
-            if(respondido !== -1 && radios[radios.length > 0 ? respondido : 0]) {
-                radios[respondido].parentElement.style.background = "#f8d7da";
-                radios[respondido].parentElement.style.borderColor = "#f5c6cb";
-            }
-            if(radios[item.a]) {
-                radios[item.a].parentElement.style.background = "#d4edda";
-                radios[item.a].parentElement.style.borderColor = "#c3e6cb";
-            }
-        }
-        
-        // Exibe a explicação assim que for corrigido
-        document.getElementById(`explicacao${index}`).style.display = "block";
-    });
-
-    const nota = (acertos / questoes.length) * 10;
-    const resDiv = document.getElementById('result');
-    
-    if (nota >= 7) {
-        resDiv.style.backgroundColor = "#e8f8f5";
-        resDiv.style.color = "#27ae60";
-    } else {
-        resDiv.style.backgroundColor = "#fdf2f2";
-        resDiv.style.color = "#E31837";
-    }
-    
-    resDiv.innerHTML = `Henrique, você acertou ${acertos} de ${questoes.length} questões!<br>Sua nota foi: <span>${nota.toFixed(1)}</span>`;
-    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-};
-
-window.limparProva = function() {
-    const inputs = document.querySelectorAll('input[type="radio"]');
-    inputs.forEach(input => {
-        input.checked = false;
-        input.parentElement.style.background = "transparent";
-        input.parentElement.style.borderColor = "transparent";
-    });
-    
-    document.querySelectorAll('.hint-text').forEach(dica => dica.style.display = "none");
-    document.querySelectorAll('.explanation-text').forEach(exp => exp.style.display = "none");
-    
-    const resDiv = document.getElementById('result');
-    resDiv.innerHTML = "";
-    resDiv.style.backgroundColor = "transparent";
-    
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-};
-
-// 5. INICIALIZAÇÃO
-// Espera o documento carregar ou injeta direto se já estiver pronto
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        injetarCSS();
-        renderizarApp();
-    });
-} else {
-    injetarCSS();
-    renderizarApp();
+    );
 }
