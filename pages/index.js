@@ -1,3 +1,5 @@
+import React, { useState, useEffect } from 'react';
+
 // 1. DADOS DO SIMULADO DE CIÊNCIAS (40 Questões baseadas na matéria "Misunderstood Microbes")
 const questoes = [
     { q: "1. O que são microorganismos e onde eles podem viver?", o: ["Apenas seres grandes que vivem na água salgada", "Tiny living things (seres vivos minúsculos) que sobrevivem em ambientes extremos e em todos os lugares", "Apenas vírus que causam doenças graves", "Insetos microscópicos que voam"], a: 1, dica: "Lembre-se de que eles dominam pela capacidade de viver em condições extremas.", explicacao: "Microrganismos são seres vivos minúsculos que conseguem sobreviver em ambientes extremos como nuvens, vulcões submarinos, fontes termais, calotas polares e intestinos de animais." },
@@ -36,215 +38,173 @@ const questoes = [
     { q: "34. Qual é a importância ecológica geral dos microrganismos no planeta?", o: ["Eles destroem todo o oxigênio da Terra", "Eles sustentam ciclos de nutrientes, decomposição e cadeias alimentares", "Eles servem apenas para causar pandemias", "Eles controlam o trânsito das cidades"], a: 1, dica: "Sem eles, o planeta ficaria soterrado em lixo orgânico.", explicacao: "Microrganismos sustentam a vida na Terra ao reciclar nutrientes e basear teias alimentares fundamentais." },
     { q: "35. O que é um parasita interno no corpo humano?", o: ["Um organismo que vive dentro de outro e retira nutrientes causando danos", "Um órgão de reserva de gordura", "Uma célula muscular forte", "Uma vitamina líquida"], a: 0, dica: "Ele mora de aluguel e ainda prejudica o hospedeiro.", explicacao: "Parasitas internos habitam o corpo de outros seres vivos para se alimentar, gerando doenças e mal-estar." },
     { q: "36. Qual é a melhor forma de impedir que micróbios de uma carne crua contaminem outros alimentos na cozinha?", o: ["Usar tábuas e utensílios separados e lavar bem as mãos", "Deixar a carne exposta ao sol por 5 minutos", "Assoprar a carne", "Guardar tudo na gaveta de roupas"], a: 0, dica: "Evita a contaminação cruzada de alimentos.", explicacao: "Separar utensílios e higienizar superfícies impede que bactérias da carne crua passem para alimentos prontos." },
-    { q: "37. O que os cientistas usam para enxergar bactérias e vírus com clareza?", o: ["Lupas comuns de leitura", "Microscópios potentes", "Óculos escuros", "Telescópios espaciais"], a: 1, dica: "Eles são microscópicos, logo precisam de um instrumento específico.", explicacao: "Como são invisíveis a olho nu, o uso de microscópios avançados é obrigatório para estudá-los." },
+    { q: "37. O what os cientistas usam para enxergar bactérias e vírus com clareza?", o: ["Lupas comuns de leitura", "Microscópios potentes", "Óculos escuros", "Telescópios espaciais"], a: 1, dica: "Eles são microscópicos, logo precisam de um instrumento específico.", explicacao: "Como são invisíveis a olho nu, o uso de microscópios avançados é obrigatório para estudá-los." },
     { q: "38. Por que a pele humana saudável possui bactérias benéficas?", o: ["Para atrair insetos", "Para formar uma barreira protetora contra germes invasores patogênicos", "Para dar cor à pele", "Para produzir suor doce"], a: 1, dica: "A flora da pele nos defende de invasores piores.", explicacao: "A microbiota da pele atua como um escudo protetor natural, ocupando espaço e combatendo micróbios patogênicos." },
     { q: "39. Qual microrganismo é fundamental na produção de etanol combustível através da cana?", o: ["Levedura (Yeast)", "Vírus da gripe aviária", "Amoeba gigante", "Bactéria do tétano"], a: 0, dica: "O mesmo fungo que faz o pão crescer faz o biocombustível.", explicacao: "A levedura fermenta o caldo da cana transformando o açúcar em álcool (etanol)." },
     { q: "40. O que devemos fazer sempre antes de cozinhar ou comer?", o: ["Lavar bem as mãos com água e sabão", "Correr em volta da mesa", "Desligar todas as luzes da casa", "Molhar os sapatos"], a: 0, dica: "Higiene básica para garantir saúde e evitar micróbios indesejados.", explicacao: "Lavar as mãos com água e sabão é a medida número um de prevenção contra infecções alimentares e germes." }
 ];
 
-// 2. INJEÇÃO DE CSS
-function injetarCSS() {
-    if (document.getElementById('quiz-styles')) return;
+export default function Home() {
+    const [respostas, setRespostas] = useState({});
+    const [dicasVisiveis, setDicasVisiveis] = useState({});
+    const [explicacoesVisiveis, setExplicacoesVisiveis] = useState({});
+    const [resultado, setResultado] = useState(null);
+    const [notaEstilo, setNotaEstilo] = useState({});
 
-    const style = document.createElement('style');
-    style.id = 'quiz-styles';
-    style.innerHTML = `
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5; color: #333; margin: 0; padding: 20px; }
-        .container { max-width: 850px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-top: 6px solid #E31837; }
-        h1 { text-align: center; color: #E31837; margin-bottom: 5px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
-        .subtitle { text-align: center; color: #2C3E50; margin-bottom: 25px; font-weight: 600; font-size: 1.1em; }
-        
-        .review-box { background-color: #f8f9fa; border: 2px solid #2C3E50; border-radius: 8px; padding: 20px; margin-bottom: 35px; }
-        .review-box h2 { color: #E31837; margin-top: 0; font-size: 1.3em; border-bottom: 2px solid #eaeaea; padding-bottom: 8px; }
-        .review-box p, .review-box li { color: #2C3E50; font-size: 0.95em; line-height: 1.5; }
-        .review-box ul { padding-left: 20px; margin-bottom: 0; }
-        .review-box li { margin-bottom: 10px; }
+    useEffect(() => {
+        // Injeta o CSS institucional da Escola Canadense de Brasília no head de forma segura
+        if (!document.getElementById('quiz-styles')) {
+            const style = document.createElement('style');
+            style.id = 'quiz-styles';
+            style.innerHTML = `
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5; color: #333; margin: 0; padding: 20px; }
+                .container { max-width: 850px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-top: 6px solid #E31837; }
+                h1 { text-align: center; color: #E31837; margin-bottom: 5px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+                .subtitle { text-align: center; color: #2C3E50; margin-bottom: 25px; font-weight: 600; font-size: 1.1em; }
+                
+                .review-box { background-color: #f8f9fa; border: 2px solid #2C3E50; border-radius: 8px; padding: 20px; margin-bottom: 35px; }
+                .review-box h2 { color: #E31837; margin-top: 0; font-size: 1.3em; border-bottom: 2px solid #eaeaea; padding-bottom: 8px; }
+                .review-box p, .review-box li { color: #2C3E50; font-size: 0.95em; line-height: 1.5; }
+                .review-box ul { padding-left: 20px; margin-bottom: 0; }
+                .review-box li { margin-bottom: 10px; }
 
-        .question { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #eaeaea; }
-        .question p { font-weight: bold; font-size: 1.15em; color: #2C3E50; }
-        
-        .options label { display: block; margin: 8px 0; cursor: pointer; padding: 10px; border-radius: 6px; transition: all 0.2s; border: 1px solid transparent; }
-        .options label:hover { background: #fdf2f2; border: 1px solid #fadbdc; }
-        
-        .btn-group { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
-        
-        .hint-btn { background-color: #f39c12; color: white; border: none; padding: 8px 14px; font-size: 0.9em; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .hint-btn:hover { background-color: #d68910; }
-        
-        .exp-btn { background-color: #2C3E50; color: white; border: none; padding: 8px 14px; font-size: 0.9em; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .exp-btn:hover { background-color: #1a252f; }
+                .question { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #eaeaea; }
+                .question p { font-weight: bold; font-size: 1.15em; color: #2C3E50; }
+                
+                .options label { display: block; margin: 8px 0; cursor: pointer; padding: 10px; border-radius: 6px; transition: all 0.2s; border: 1px solid transparent; }
+                .options label:hover { background: #fdf2f2; border: 1px solid #fadbdc; }
+                
+                .btn-group { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+                
+                .hint-btn { background-color: #f39c12; color: white; border: none; padding: 8px 14px; font-size: 0.9em; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+                .hint-btn:hover { background-color: #d68910; }
+                
+                .exp-btn { background-color: #2C3E50; color: white; border: none; padding: 8px 14px; font-size: 0.9em; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+                .exp-btn:hover { background-color: #1a252f; }
 
-        .hint-text { display: none; margin-top: 12px; padding: 12px; background-color: #fff9e6; border-left: 5px solid #f39c12; color: #5d4037; font-size: 0.95em; font-style: italic; border-radius: 0 4px 4px 0; }
-        .explanation-text { display: none; margin-top: 12px; padding: 12px; background-color: #fdf2f2; border-left: 5px solid #E31837; color: #c0392b; font-size: 0.95em; border-radius: 0 4px 4px 0; }
-        
-        .btn-main { display: block; width: 100%; color: white; border: none; padding: 16px; font-size: 1.2em; border-radius: 6px; cursor: pointer; margin-top: 20px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; transition: opacity 0.2s; }
-        .btn-corrigir { background: #27ae60; box-shadow: 0 4px 6px rgba(39,174,96,0.2); }
-        .btn-corrigir:hover { background: #219653; }
-        .btn-limpar { background: #E31837; margin-top: 12px; box-shadow: 0 4px 6px rgba(227,24,55,0.2); }
-        .btn-limpar:hover { background: #c0392b; }
-        
-        #result { margin-top: 30px; font-size: 1.4em; text-align: center; font-weight: bold; padding: 20px; border-radius: 8px; }
-    `;
-    document.head.appendChild(style);
-}
+                .hint-text { margin-top: 12px; padding: 12px; background-color: #fff9e6; border-left: 5px solid #f39c12; color: #5d4037; font-size: 0.95em; font-style: italic; border-radius: 0 4px 4px 0; }
+                .explanation-text { margin-top: 12px; padding: 12px; background-color: #fdf2f2; border-left: 5px solid #E31837; color: #c0392b; font-size: 0.95em; border-radius: 0 4px 4px 0; }
+                
+                .btn-main { display: block; width: 100%; color: white; border: none; padding: 16px; font-size: 1.2em; border-radius: 6px; cursor: pointer; margin-top: 20px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; transition: opacity 0.2s; }
+                .btn-corrigir { background: #27ae60; box-shadow: 0 4px 6px rgba(39,174,96,0.2); }
+                .btn-corrigir:hover { background: #219653; }
+                .btn-limpar { background: #E31837; margin-top: 12px; box-shadow: 0 4px 6px rgba(227,24,55,0.2); }
+                .btn-limpar:hover { background: #c0392b; }
+                
+                #result { margin-top: 30px; font-size: 1.4em; text-align: center; font-weight: bold; padding: 20px; border-radius: 8px; }
+            `;
+            document.head.appendChild(style);
+        }
+    }, []);
 
-// 3. CONSTRUÇÃO DO DOM
-function renderizarApp() {
-    document.body.style.margin = "0";
-    document.body.style.backgroundColor = "#f5f5f5";
+    const selecionarResposta = (qIndex, optIndex) => {
+        setRespostas(prev => ({ ...prev, [qIndex]: optIndex }));
+        setExplicacoesVisiveis(prev => ({ ...prev, [qIndex]: true }));
+    };
 
-    let html = `
-        <div class="container">
+    const toggleDica = (qIndex) => {
+        setDicasVisiveis(prev => ({ ...prev, [qIndex]: !prev[qIndex] }));
+    };
+
+    const toggleExplicacao = (qIndex) => {
+        setExplicacoesVisiveis(prev => ({ ...prev, [qIndex]: !prev[qIndex] }));
+    };
+
+    const corrigirProva = () => {
+        let acertos = 0;
+        questoes.forEach((item, index) => {
+            if (respostas[index] === item.a) {
+                acertos++;
+            }
+            // Abre todas as explicações ao corrigir
+            setExplicacoesVisiveis(prev => ({ ...prev, [index]: true }));
+        });
+
+        const nota = (acertos / questoes.length) * 10;
+        setResultado(`Henrique, você acertou ${acertos} de ${questoes.length} questões! Sua nota foi: ${nota.toFixed(1)}`);
+        
+        if (nota >= 7) {
+            setNotaEstilo({ backgroundColor: "#e8f8f5", color: "#27ae60" });
+        } else {
+            setNotaEstilo({ backgroundColor: "#fdf2f2", color: "#E31837" });
+        }
+
+        if (typeof window !== 'undefined') {
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
+    };
+
+    const limparProva = () => {
+        setRespostas({});
+        setDicasVisiveis({});
+        setExplicacoesVisiveis({});
+        setResultado(null);
+        if (typeof window !== 'undefined') {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    };
+
+    return (
+        <div className="container">
             <h1>Simulado de Ciências</h1>
-            <div class="subtitle">Treinamento Especial para o Henrique - Grade 4 ("Misunderstood Microbes")</div>
+            <div className="subtitle">Treinamento Especial para o Henrique - Grade 4 (&quot;Misunderstood Microbes&quot;)</div>
             
-            <div class="review-box">
-                <h2>📖 Revisão Detalhada & Feedback de Desempenho (Ciências)</h2>
-                <p>Aqui está o apanhado mastigado dos principais conceitos que o Henrique estudou em <strong>"Misunderstood Microbes"</strong>:</p>
+            <div className="review-box">
+                <h2>📖 Revisão Detalhada &amp; Feedback de Desempenho (Ciências)</h2>
+                <p>Aqui está o apanhado mastigado dos principais conceitos que o Henrique estudou em <strong>&quot;Misunderstood Microbes&quot;</strong>:</p>
                 <ul>
                     <li><strong>O que são Microrganismos:</strong> Seres vivos minúsculos que sobrevivem em ambientes extremos (nuvens, vulcões submarinos, fontes termais, calotas polares e intestinos).</li>
                     <li><strong>Exemplos Benéficos Úteis:</strong> A levedura (Yeast) usada na alimentação/pães e em biocombustíveis; o Lactobacillus usado para fazer iogurtes; e o fungo Penicillium que produz antibióticos salvadores.</li>
                     <li><strong>Bactérias vs. Vírus (Atenção na Q4):</strong> Antibióticos combatem bactérias ruins, mas <strong>NÃO funcionam contra vírus</strong> (como a gripe), pois os vírus possuem estruturas totalmente diferentes e precisam de células hospedeiras.</li>
-                    <li><strong>Higiene e Vacinas:</strong> Vacinas funcionam como "escudos de super-herói", treinando o sistema imunológico contra germes. Práticas como lavar as mãos evitam a contaminação cruzada por superfícies tocadas (como maçanetas).</li>
+                    <li><strong>Higiene e Vacinas:</strong> Vacinas funcionam como &quot;escudos de super-herói&quot;, treinando o sistema imunológico contra germes. Práticas como lavar as mãos evitam a contaminação cruzada por superfícies tocadas (como maçanetas).</li>
                     <li><strong>Tipos e Riscos:</strong> Amostras de água não tratada contêm bactérias, protozoários e vírus; parasitas internos causam dores abdominais; e cogumelos de supermercado são seguros para consumo, ao contrário dos selvagens na floresta.</li>
                 </ul>
             </div>
 
-            <form id="quizForm">
-    `;
+            <form onSubmit={(e) => e.preventDefault()}>
+                {questoes.map((item, index) => {
+                    const respostaDada = respostas[index];
+                    return (
+                        <div className="question" key={index}>
+                            <p>{item.q}</p>
+                            <div className="options">
+                                {item.o.map((opt, optIndex) => {
+                                    let estiloLabel = {};
+                                    if (respostaDada !== undefined) {
+                                        if (optIndex === item.a) {
+                                            estiloLabel = { backgroundColor: "#d4edda", borderColor: "#c3e6cb" }; // Correto fica verde
+                                        } else if (respostaDada === optIndex) {
+                                            estiloLabel = { backgroundColor: "#f8d7da", borderColor: "#f5c6cb" }; // Errado fica vermelho
+                                        }
+                                    }
+                                    return (
+                                        <label key={optIndex} style={estiloLabel}>
+                                            <input 
+                                                type="radio" 
+                                                name={`q${index}`} 
+                                                checked={respostaDada === optIndex}
+                                                onChange={() => selecionarResposta(index, optIndex)} 
+                                            /> {opt}
+                                        </label>
+                                    );
+                                })}
+                            </div>
 
-    questoes.forEach((item, index) => {
-        html += `<div class="question"><p>${item.q}</p><div class="options">`;
-        
-        item.o.forEach((opt, optIndex) => {
-            // Adicionado evento onchange para feedback instantâneo
-            html += `<label><input type="radio" name="q${index}" value="${optIndex}" onchange="window.verificarRespostaInstantanea(${index}, ${optIndex})"> ${opt}</label>`;
-        });
-        
-        html += `</div>
-            <div class="btn-group">
-                <button type="button" class="hint-btn" onclick="window.toggleDica(${index})">💡 Ver Dica</button>
-                <button type="button" class="exp-btn" onclick="window.toggleExplicacao(${index})">📚 Ver Explicação da Matéria</button>
-            </div>
-            
-            <div id="dica${index}" class="hint-text">${item.dica}</div>
-            <div id="explicacao${index}" class="explanation-text"><strong>📚 Explicação:</strong> ${item.explicacao}</div>
-        </div>`;
-    });
+                            <div className="btn-group">
+                                <button type="button" className="hint-btn" onClick={() => toggleDica(index)}>💡 Ver Dica</button>
+                                <button type="button" className="exp-btn" onClick={() => toggleExplicacao(index)}>📚 Ver Explicação da Matéria</button>
+                            </div>
 
-    html += `
+                            {dicasVisiveis[index] && <div className="hint-text">{item.dica}</div>}
+                            {explicacoesVisiveis[index] && <div className="explanation-text"><strong>📚 Explicação:</strong> {item.explicacao}</div>}
+                        </div>
+                    );
+                })}
             </form>
-            <button type="button" class="btn-main btn-corrigir" onclick="window.corrigirProva()">Verificar Respostas e Nota</button>
-            <button type="button" class="btn-main btn-limpar" onclick="window.limparProva()">Limpar Respostas e Refazer</button>
-            <div id="result"></div>
+
+            <button type="button" className="btn-main btn-corrigir" onClick={corrigirProva}>Verificar Respostas e Nota</button>
+            <button type="button" className="btn-main btn-limpar" onclick="null" onClick={limparProva}>Limpar Respostas e Refazer</button>
+            {resultado && <div id="result" style={notaEstilo}>{resultado}</div>}
         </div>
-    `;
-
-    document.body.innerHTML = html;
-}
-
-// 4. LÓGICA DE INTERAÇÃO GLOBAL
-window.toggleDica = function(index) {
-    const dicaDiv = document.getElementById(`dica${index}`);
-    dicaDiv.style.display = (dicaDiv.style.display === "none" || dicaDiv.style.display === "") ? "block" : "none";
-};
-
-window.toggleExplicacao = function(index) {
-    const expDiv = document.getElementById(`explicacao${index}`);
-    expDiv.style.display = (expDiv.style.display === "none" || expDiv.style.display === "") ? "block" : "none";
-};
-
-// NOVA FUNÇÃO: Feedback imediato ao selecionar uma opção
-window.verificarRespostaInstantanea = function(index, escolha) {
-    const item = questoes[index];
-    const radios = document.getElementsByName(`q${index}`);
-    
-    // Limpa cores anteriores das labels dessa questão
-    radios.forEach(r => {
-        r.parentElement.style.background = "transparent";
-        r.parentElement.style.borderColor = "transparent";
-    });
-
-    const labelSelecionada = radios[escolha].parentElement;
-
-    if (escolha === item.a) {
-        // Acertou de primeira na escolha
-        labelSelecionada.style.background = "#d4edda";
-        labelSelecionada.style.borderColor = "#c3e6cb";
-    } else {
-        // Errou: pinta a escolhida de vermelho e a certa de verde
-        labelSelecionada.style.background = "#f8d7da";
-        labelSelecionada.style.borderColor = "#f5c6cb";
-        
-        if (radios[item.a]) {
-            radios[item.a].parentElement.style.background = "#d4edda";
-            radios[item.a].parentElement.style.borderColor = "#c3e6cb";
-        }
-    }
-
-    // Mostra a explicação automaticamente para ajudar no aprendizado imediato
-    document.getElementById(`explicacao${index}`).style.display = "block";
-};
-
-window.corrigirProva = function() {
-    let acertos = 0;
-    
-    questoes.forEach((item, index) => {
-        const radios = document.getElementsByName(`q${index}`);
-        let respondido = -1;
-        
-        for (let r of radios) {
-            if (r.checked) respondido = parseInt(r.value);
-        }
-
-        if (respondido === item.a) {
-            acertos++;
-        }
-        
-        // Garante que a explicação fique aberta ao calcular a nota final
-        document.getElementById(`explicacao${index}`).style.display = "block";
-    });
-
-    const nota = (acertos / questoes.length) * 10;
-    const resDiv = document.getElementById('result');
-    
-    if (nota >= 7) {
-        resDiv.style.backgroundColor = "#e8f8f5";
-        resDiv.style.color = "#27ae60";
-    } else {
-        resDiv.style.backgroundColor = "#fdf2f2";
-        resDiv.style.color = "#E31837";
-    }
-    
-    resDiv.innerHTML = `Henrique, você acertou ${acertos} de ${questoes.length} questões!<br>Sua nota foi: <span>${nota.toFixed(1)}</span>`;
-    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-};
-
-window.limparProva = function() {
-    const inputs = document.querySelectorAll('input[type="radio"]');
-    inputs.forEach(input => {
-        input.checked = false;
-        input.parentElement.style.background = "transparent";
-        input.parentElement.style.borderColor = "transparent";
-    });
-    
-    document.querySelectorAll('.hint-text').forEach(dica => dica.style.display = "none");
-    document.querySelectorAll('.explanation-text').forEach(exp => exp.style.display = "none");
-    
-    const resDiv = document.getElementById('result');
-    resDiv.innerHTML = "";
-    resDiv.style.backgroundColor = "transparent";
-    
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-};
-
-// 5. INICIALIZAÇÃO
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        injetarCSS();
-        renderizarApp();
-    });
-} else {
-    injetarCSS();
-    renderizarApp();
+    );
 }
