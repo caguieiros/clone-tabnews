@@ -445,15 +445,17 @@ const questoes = [
 ];
 
 export default function Home() {
+    const [mounted, setMounted] = useState(false);
     const [respostas, setRespostas] = useState({});
     const [dicasVisiveis, setDicasVisiveis] = useState({});
     const [explicacoesVisiveis, setExplicacoesVisiveis] = useState({});
     const [traducaoTopoVisivel, setTraducaoTopoVisivel] = useState(false);
-    const [traducoesQuestoes, setTraducoesQuestoes] = useState({}); // Controla quais questões exibem tradução
+    const [traducoesQuestoes, setTraducoesQuestoes] = useState({});
     const [resultado, setResultado] = useState(null);
     const [notaEstilo, setNotaEstilo] = useState({});
 
     useEffect(() => {
+        setMounted(true);
         if (!document.getElementById('quiz-styles')) {
             const style = document.createElement('style');
             style.id = 'quiz-styles';
@@ -504,6 +506,9 @@ export default function Home() {
             document.head.appendChild(style);
         }
     }, []);
+
+    // Evita qualquer piscada ou erro de hidratação no carregamento inicial do Next.js
+    if (!mounted) return null;
 
     const selecionarResposta = (qIndex, optIndex) => {
         setRespostas(prev => ({ ...prev, [qIndex]: optIndex }));
@@ -559,6 +564,9 @@ export default function Home() {
 
     return (
         <div className="container">
+            <Head>
+                <title>Science Quiz - Henrique</title>
+            </Head>
             <h1>Science Quiz</h1>
             <div className="subtitle">Special Practice for Henrique - Grade 4 (&quot;Misunderstood Microbes&quot;)</div>
             
@@ -617,14 +625,12 @@ export default function Home() {
                             <div className="options">
                                 {item.o.map((opt, optIndex) => {
                                     let estiloLabel = {};
-                                    if (respostaDada !== undefined) {
-                                        if (respostaDada === optIndex) {
-                                            // Se for a linha que ele clicou: verde se acertou, vermelha se errou (sem revelar a resposta certa)
-                                            if (optIndex === item.a) {
-                                                estiloLabel = { backgroundColor: "#d4edda", borderColor: "#c3e6cb" };
-                                            } else {
-                                                estiloLabel = { backgroundColor: "#f8d7da", borderColor: "#f5c6cb" };
-                                            }
+                                    if (respostaDada !== undefined && respostaDada === optIndex) {
+                                        // Deixa apenas a linha clicada verde (se certa) ou vermelha (se errada), sem revelar a resposta correta
+                                        if (optIndex === item.a) {
+                                            estiloLabel = { backgroundColor: "#d4edda", borderColor: "#c3e6cb" };
+                                        } else {
+                                            estiloLabel = { backgroundColor: "#f8d7da", borderColor: "#f5c6cb" };
                                         }
                                     }
                                     return (
@@ -641,8 +647,8 @@ export default function Home() {
                             </div>
 
                             <div className="btn-group">
-                                <button type="button" className="hint-btn" onClick={() => toggleDica(index)}>💡 View Hint</button>
-                                <button type="button" className="exp-btn" onClick={() => toggleExplicacao(index)}>📚 View Explanation</button>
+                                <button type="button" className="hint-btn" onclick="null" onClick={() => toggleDica(index)}>💡 View Hint</button>
+                                <button type="button" className="exp-btn" onclick="null" onClick={() => toggleExplicacao(index)}>📚 View Explanation</button>
                             </div>
 
                             {dicasVisiveis[index] && (
