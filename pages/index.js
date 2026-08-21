@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Head from 'next/head';
 
 // 1. DADOS DO SIMULADO DE CIÊNCIAS EM INGLÊS COM TRADUÇÃO PARA PORTUGUÊS POR BLOCO
 const questoes = [
@@ -507,7 +508,6 @@ export default function Home() {
         }
     }, []);
 
-    // Evita qualquer piscada ou erro de hidratação no carregamento inicial do Next.js
     if (!mounted) return null;
 
     const selecionarResposta = (qIndex, optIndex) => {
@@ -567,10 +567,10 @@ export default function Home() {
             <Head>
                 <title>Science Quiz - Henrique</title>
             </Head>
+
             <h1>Science Quiz</h1>
             <div className="subtitle">Special Practice for Henrique - Grade 4 (&quot;Misunderstood Microbes&quot;)</div>
             
-            {/* CAIXA DE REVISÃO DETALHADA E MASTIGADA EM INGLÊS COM BOTÃO DE TRADUÇÃO */}
             <div className="review-box">
                 <h2>
                     📖 Detailed Review &amp; Performance Feedback (Science)
@@ -626,7 +626,6 @@ export default function Home() {
                                 {item.o.map((opt, optIndex) => {
                                     let estiloLabel = {};
                                     if (respostaDada !== undefined && respostaDada === optIndex) {
-                                        // Deixa apenas a linha clicada verde (se certa) ou vermelha (se errada), sem revelar a resposta correta
                                         if (optIndex === item.a) {
                                             estiloLabel = { backgroundColor: "#d4edda", borderColor: "#c3e6cb" };
                                         } else {
@@ -647,8 +646,8 @@ export default function Home() {
                             </div>
 
                             <div className="btn-group">
-                                <button type="button" className="hint-btn" onclick="null" onClick={() => toggleDica(index)}>💡 View Hint</button>
-                                <button type="button" className="exp-btn" onclick="null" onClick={() => toggleExplicacao(index)}>📚 View Explanation</button>
+                                <button type="button" className="hint-btn" onClick={() => toggleDica(index)}>💡 View Hint</button>
+                                <button type="button" className="exp-btn" onClick={() => toggleExplicacao(index)}>📚 View Explanation</button>
                             </div>
 
                             {dicasVisiveis[index] && (
@@ -670,7 +669,7 @@ export default function Home() {
             </form>
 
             <button type="button" className="btn-main btn-corrigir" onClick={corrigirProva}>Check Answers &amp; Score</button>
-            <button type="button" className="btn-main btn-limpar" onClick={limparProva}>Clear Answers &amp; Retake</button>
+            <button type="button" className="btn-main btn-limpar" onclick="null" onClick={limparProva}>Clear Answers &amp; Retake</button>
             {resultado && <div id="result" style={notaEstilo}>{resultado}</div>}
         </div>
     );
